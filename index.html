@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAMI — Production Timeline 2026–2027</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf8f4;
+    --ink: #1a1714;
+    --ink-light: #6b6560;
+    --rule: #e0dbd3;
+    --accent: #c17f4a;
+    --blackout-bg: rgba(30,20,10,0.07);
+    --blackout-stripe: rgba(30,20,10,0.04);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: 'DM Mono', monospace; font-size: 12px; min-height: 100vh; }
+
+  /* HEADER */
+  header { padding: 26px 40px 16px; border-bottom: 1px solid var(--rule); display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .header-title h1 { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 34px; letter-spacing: 0.04em; line-height: 1; }
+  .header-title p { margin-top: 5px; color: var(--ink-light); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* CONTROLS */
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .control-group { display: flex; flex-direction: column; gap: 3px; }
+  .control-group label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-light); }
+  select, button { font-family: 'DM Mono', monospace; font-size: 11px; background: white; border: 1px solid var(--rule); color: var(--ink); padding: 5px 10px; cursor: pointer; border-radius: 2px; appearance: none; -webkit-appearance: none; }
+  select { padding-right: 22px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6560'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 7px center; }
+  button.primary { background: var(--ink); color: var(--bg); letter-spacing: 0.04em; }
+  button.primary:hover { background: var(--accent); }
+  button.ghost { background: white; color: var(--ink); }
+  button.ghost:hover { background: var(--rule); }
+
+  /* LEGEND */
+  .legend { padding: 10px 40px; border-bottom: 1px solid var(--rule); display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+  .legend-section { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .legend-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-light); }
+  .swatch { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--ink-light); }
+  .swatch-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+  .swatch-circle { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .swatch-ring { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 2px solid var(--ink-light); background: transparent; }
+  .swatch-blackout { width: 18px; height: 9px; flex-shrink: 0; background: repeating-linear-gradient(135deg, rgba(30,20,10,0.12) 0px, rgba(30,20,10,0.12) 2px, rgba(30,20,10,0.04) 2px, rgba(30,20,10,0.04) 6px); border-radius: 2px; }
+
+  /* STATS */
+  .stats { padding: 9px 40px; border-bottom: 1px solid var(--rule); display: flex; gap: 28px; flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; gap: 1px; }
+  .stat-val { font-size: 18px; font-family: 'Cormorant Garamond', serif; font-weight: 300; }
+  .stat-key { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-light); }
+
+  /* GANTT */
+  .gantt-wrapper { overflow-x: auto; padding: 0 40px 40px; }
+  .gantt { min-width: 1500px; width: 100%; position: relative; }
+
+  /* HEADER rows */
+  .gantt-header-months { display: grid; position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .gantt-header-weeks  { display: grid; position: sticky; top: 36px; z-index: 19; background: var(--bg); border-bottom: 2px solid var(--ink); }
+
+  .hcell-task-months { padding: 6px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-light); border-right: 1px solid var(--rule); display: flex; align-items: center; min-height: 36px; }
+  .hcell-task-weeks  { padding: 4px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-light); border-right: 1px solid var(--rule); display: flex; align-items: center; min-height: 24px; font-size: 8px; }
+  .hcell-bar-months  { position: relative; height: 36px; }
+  .hcell-bar-weeks   { position: relative; height: 24px; }
+
+  .month-tick  { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--rule); pointer-events: none; z-index: 1; }
+  .month-label { position: absolute; top: 50%; transform: translateY(-50%); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-light); white-space: nowrap; padding-left: 4px; }
+  .week-tick   { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(0,0,0,0.06); pointer-events: none; z-index: 1; }
+  .week-label  { position: absolute; top: 50%; transform: translateY(-50%) translateX(-50%); font-size: 7px; color: var(--ink-light); opacity: 0.7; white-space: nowrap; text-align: center; }
+
+  .today-line  { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); z-index: 5; pointer-events: none; }
+  .today-label { position: absolute; top: 2px; font-size: 8px; color: var(--accent); letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; transform: translateX(-50%); }
+
+  /* ROWS */
+  .gantt-row { display: grid; border-bottom: 1px solid var(--rule); min-height: 28px; align-items: stretch; position: relative; }
+  .gantt-row:hover { background: rgba(0,0,0,0.018); }
+  .gantt-row.group-header { background: var(--ink); color: var(--bg); min-height: 22px; position: sticky; top: 60px; z-index: 15; }
+
+  /* TASK CELL */
+  .cell-task { padding: 4px 8px; display: flex; align-items: center; gap: 6px; border-right: 1px solid var(--rule); overflow: hidden; }
+  .cell-list-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .task-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11px; }
+  .task-labels { display: flex; gap: 2px; flex-wrap: nowrap; overflow: hidden; flex-shrink: 0; }
+  .tag { font-size: 8px; padding: 1px 4px; border-radius: 2px; white-space: nowrap; color: white; opacity: 0.9; }
+  .recur-badge { font-size: 8px; padding: 1px 4px; border-radius: 2px; background: rgba(0,0,0,0.07); color: var(--ink-light); white-space: nowrap; flex-shrink: 0; }
+
+  /* BAR CELL */
+  .cell-bar { position: relative; padding: 4px 0; display: flex; align-items: center; overflow: visible; }
+
+  /* BLACKOUT OVERLAY — lives inside .cell-bar, absolutely positioned */
+  .blackout-overlay {
+    position: absolute; top: 0; bottom: 0;
+    pointer-events: none; z-index: 4;
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(20,12,5,0.10) 0px, rgba(20,12,5,0.10) 2px,
+      rgba(20,12,5,0.03) 2px, rgba(20,12,5,0.03) 7px
+    );
+    border-left: 1px solid rgba(20,12,5,0.12);
+    border-right: 1px solid rgba(20,12,5,0.12);
+  }
+
+  /* GANTT BARS */
+  .gantt-bar { position: absolute; height: 14px; border-radius: 2px; cursor: pointer; transition: filter 0.12s, transform 0.12s; z-index: 2; }
+  .gantt-bar:hover { filter: brightness(1.12); transform: scaleY(1.2); z-index: 3; }
+
+  /* RECURRING: thin line + dots */
+  .recur-track { position: absolute; height: 2px; border-radius: 1px; opacity: 0.3; z-index: 1; pointer-events: none; }
+  .recur-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; border: 2px solid; background: var(--bg); transform: translateX(-50%) translateY(-50%); top: 50%; cursor: pointer; z-index: 6; transition: transform 0.1s; }
+  .recur-dot:hover { transform: translateX(-50%) translateY(-50%) scale(1.5); z-index: 7; }
+
+  /* MILESTONE */
+  .gantt-milestone { position: absolute; width: 10px; height: 10px; border-radius: 50%; transform: translateX(-50%); cursor: pointer; z-index: 6; transition: transform 0.1s; }
+  .gantt-milestone:hover { transform: translateX(-50%) scale(1.4); z-index: 7; }
+
+  /* GROUP HEADER CELLS */
+  .gcell-task { padding: 3px 8px; font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; border-right: 1px solid rgba(255,255,255,0.15); }
+  .gcell-bar { position: relative; }
+
+  /* TOOLTIP */
+  #tooltip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 4px; font-size: 11px; line-height: 1.6; max-width: 320px; z-index: 1000; opacity: 0; transition: opacity 0.1s; word-break: break-word; }
+  #tooltip.visible { opacity: 1; }
+  #tooltip strong { font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 600; display: block; margin-bottom: 4px; }
+  #tooltip .tt-meta { color: rgba(255,255,255,0.55); font-size: 10px; display: block; }
+  #tooltip .tt-tags { margin-top: 6px; display: flex; gap: 3px; flex-wrap: wrap; }
+
+  /* PRINT */
+  @media print {
+    header { padding: 10px 16px; }
+    .controls { display: none; }
+    .gantt-wrapper { padding: 0 16px 20px; overflow: visible; }
+    .gantt { min-width: unset; }
+    body { font-size: 9px; }
+    .gantt-bar, .recur-dot, .recur-track, .blackout-overlay { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <h1>SAMI — Production Timeline</h1>
+    <p>May 2026 &ndash; April 2027 &nbsp;·&nbsp; TEFAF Maastricht 2027</p>
+  </div>
+  <div class="controls">
+    <div class="control-group">
+      <label>List</label>
+      <select id="filterList">
+        <option value="">All lists</option>
+        <option>Admin &amp; Finance</option>
+        <option>Marketing &amp; Communications</option>
+        <option>Production &amp; Logisitcs</option>
+        <option>Curation</option>
+        <option>Important dates</option>
+        <option>Group meetings</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Person</label>
+      <select id="filterPerson">
+        <option value="">Everyone</option>
+        <option>Khue Ann</option>
+        <option>Sofia</option>
+        <option>Layemi</option>
+        <option>Maria Julia</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Tag</label>
+      <select id="filterTag">
+        <option value="">All tags</option>
+        <option>For booth</option>
+        <option>For booklet</option>
+        <option>Urgent</option>
+        <option>Research</option>
+        <option>Finance</option>
+        <option>Graphic design</option>
+        <option>Logistics</option>
+        <option>Production</option>
+        <option>Admin</option>
+        <option>Comms</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>&nbsp;</label>
+      <button class="primary" onclick="resetFilters()">Reset</button>
+    </div>
+    <div class="control-group">
+      <label>&nbsp;</label>
+      <button class="ghost" onclick="window.print()">⎙ Print / PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="stats" id="statsBar"></div>
+
+<div class="legend">
+  <div class="legend-section">
+    <span class="legend-label">List</span>
+    <span class="swatch"><span class="swatch-dot" style="background:#d4a96a"></span>Admin &amp; Finance</span>
+    <span class="swatch"><span class="swatch-dot" style="background:#7fb5a3"></span>Marketing &amp; Comms</span>
+    <span class="swatch"><span class="swatch-dot" style="background:#a8886e"></span>Production &amp; Logistics</span>
+    <span class="swatch"><span class="swatch-dot" style="background:#8a8ec4"></span>Curation</span>
+    <span class="swatch"><span class="swatch-dot" style="background:#c07a8a"></span>Important Dates</span>
+    <span class="swatch"><span class="swatch-dot" style="background:#b0b8a0"></span>Group Meetings</span>
+  </div>
+  <div class="legend-section">
+    <span class="legend-label">Type</span>
+    <span class="swatch"><span class="swatch-dot" style="background:#999"></span>Duration</span>
+    <span class="swatch"><span class="swatch-circle" style="background:#999"></span>Milestone</span>
+    <span class="swatch"><span class="swatch-ring"></span>Recurring occurrence</span>
+    <span class="swatch"><span class="swatch-blackout"></span>No-work period</span>
+  </div>
+</div>
+
+<div class="gantt-wrapper">
+  <div id="gantt" class="gantt"></div>
+</div>
+<div id="tooltip"></div>
+
+<script>
+// ── DATA ──
+const TASKS = [{"title": "Provisional budget", "list": "Admin & Finance", "start": "2026-05-01", "end": "2026-06-29", "labels": ["Finance", "Layemi", "For booth", "For booklet"], "description": "During the time of initial communication with partners. Curation will deal with negotiating and meetings and then outcomes will be part of the budget. Related to the event and the booklet. There are going to be many meetings to discuss potential changes or redistribution especially when production for the event is clearer.", "duration": "1,440", "recurring": false, "occurrences": []}, {"title": "Company name", "list": "Marketing & Communications", "start": "2026-05-01", "end": "2026-05-15", "labels": ["Urgent", "Maria Julia", "Graphic design"], "description": "", "duration": "360", "recurring": false, "occurrences": []}, {"title": "Moodboard", "list": "Marketing & Communications", "start": "2026-05-01", "end": "2026-05-15", "labels": ["Maria Julia", "Graphic design", "Urgent"], "description": "", "duration": "360", "recurring": false, "occurrences": []}, {"title": "Research on media channels/Benchmarking", "list": "Marketing & Communications", "start": "2026-05-01", "end": "2026-05-31", "labels": ["Maria Julia", "Comms", "Research"], "description": "Understanding the marketing strategies of other companies in the art market and identifying", "duration": "744", "recurring": false, "occurrences": []}, {"title": "Research on company structure", "list": "Admin & Finance", "start": "2026-05-01", "end": "2026-05-15", "labels": ["Layemi", "Research", "Admin"], "description": "Based in the Netherlands, trying to navigate the different legal entities and researching what is most suitable for our initiative.", "duration": "360", "recurring": false, "occurrences": []}, {"title": "Research on sustainable exhibition design", "list": "Production & Logisitcs", "start": "2026-05-01", "end": "2026-05-31", "labels": ["Research", "Sofia", "For booth"], "description": "Figuring out how to make our booth more sustainable, where to find the write equipment, which materials to get etc.", "duration": "744", "recurring": false, "occurrences": []}, {"title": "Research on sustainability", "list": "Curation", "start": "2026-05-01", "end": "2026-05-31", "labels": ["Urgent", "Khue Ann", "For booklet", "Research"], "description": "Establishing the research question, researching the current sustainability effort of collectors. Defining the purpose, vision, mission, values of our company.", "duration": "744", "recurring": false, "occurrences": []}, {"title": "Weekly founding members meeting", "list": "Group meetings", "start": "2026-05-01", "end": "2026-05-01", "labels": ["Khue Ann", "Sofia", "Layemi", "Updates", "Maria Julia"], "description": "The four founding members will be doing an hour weekly meeting to see progress, identify potential problems, and see everyone\u2019s task week.\u200c Of course when monthly meetings or quartely update happends, we will not have double and/or triple update meetings.", "duration": "1", "recurring": true, "occurrences": ["2026-05-01", "2026-05-08", "2026-05-15", "2026-05-22", "2026-05-29", "2026-06-05", "2026-06-12", "2026-06-19", "2026-06-26", "2026-07-03", "2026-07-10", "2026-07-17", "2026-07-24", "2026-07-31", "2026-08-07", "2026-08-14", "2026-08-21", "2026-08-28", "2026-09-04", "2026-09-11", "2026-09-18", "2026-09-25", "2026-10-02", "2026-10-09", "2026-10-16", "2026-10-23", "2026-10-29", "2026-11-05", "2026-11-12", "2026-11-19", "2026-11-26", "2026-12-03", "2026-12-10", "2026-12-17", "2026-12-24", "2026-12-31", "2027-01-07", "2027-01-14", "2027-01-21", "2027-01-28", "2027-02-04", "2027-02-11", "2027-02-18", "2027-02-25", "2027-03-04", "2027-03-11", "2027-03-18", "2027-03-25", "2027-04-02", "2027-04-09", "2027-04-16", "2027-04-23", "2027-04-30"]}, {"title": "Registering the company", "list": "Admin & Finance", "start": "2026-05-18", "end": "2026-06-01", "labels": ["Layemi", "Admin"], "description": "", "duration": "360", "recurring": false, "occurrences": []}, {"title": "Benchmarking", "list": "Curation", "start": "2026-05-20", "end": "2026-06-30", "labels": ["Khue Ann", "Research"], "description": "Checking GCC, other companies in the art market. How collectors will react. Competition etc", "duration": "1,008", "recurring": false, "occurrences": []}, {"title": "Writing curatorial statement", "list": "Curation", "start": "2026-05-20", "end": "2026-05-31", "labels": ["Khue Ann", "Urgent", "For booklet"], "description": "The outcome of the research", "duration": "288", "recurring": false, "occurrences": []}, {"title": "List of potential partners and writers", "list": "Curation", "start": "2026-05-22", "end": "2026-05-22", "labels": ["Research", "Khue Ann", "Urgent"], "description": "", "duration": "1", "recurring": false, "occurrences": []}, {"title": "Confirm dimensions for booth", "list": "Production & Logisitcs", "start": "2026-05-25", "end": "2026-05-31", "labels": ["Sofia", "For booth", "Production"], "description": "", "duration": "168", "recurring": false, "occurrences": []}, {"title": "Monthly meeting with researchers", "list": "Group meetings", "start": "2026-06-01", "end": "2026-06-01", "labels": ["Maria Julia", "Layemi", "Sofia", "Khue Ann", "Updates", "For booklet"], "description": "After taking one month for establishing our company, research etc. we wil recruit our researchers to start writing the booklet and we expect are expecting 6-7 months of writing, leaving 1-2 months for editing. At the start of each month we will do an update with the researchers to understand the progress, but also cover any requests they might have, such as access to data collection, contacts etc.", "duration": "1", "recurring": true, "occurrences": ["2026-06-01", "2026-07-06", "2026-08-03", "2026-09-07", "2026-10-05", "2026-11-01", "2026-12-06", "2027-01-03", "2027-01-31", "2027-02-28", "2027-04-05"]}, {"title": "Final company identity", "list": "Marketing & Communications", "start": "2026-06-01", "end": "2026-07-06", "labels": ["Graphic design", "Maria Julia"], "description": "All the visual communication needed for the company. First step of the making of the marketing plan.", "duration": "864", "recurring": false, "occurrences": []}, {"title": "Communication with Partner 2", "list": "Curation", "start": "2026-06-01", "end": "2027-04-30", "labels": ["Khue Ann", "Emails"], "description": "All the communication sections are going to be ongoing for the whole duration of the project.", "duration": "8,016", "recurring": false, "occurrences": []}, {"title": "Communication with Partner 1 - TEFAF", "list": "Curation", "start": "2026-06-01", "end": "2027-04-30", "labels": ["Khue Ann", "Emails"], "description": "All the communication sections are going to be ongoing for the whole duration of the project.", "duration": "8,016", "recurring": false, "occurrences": []}, {"title": "Company email check-up", "list": "Production & Logisitcs", "start": "2026-06-01", "end": "2026-06-01", "labels": ["Sofia", "Logistics", "Emails"], "description": "", "duration": "1", "recurring": false, "occurrences": []}, {"title": "Communication with Partner 4", "list": "Curation", "start": "2026-06-01", "end": "2027-04-30", "labels": ["Emails", "Khue Ann"], "description": "All the communication sections are going to be ongoing for the whole duration of the project.", "duration": "8,016", "recurring": false, "occurrences": []}, {"title": "Company/member contract", "list": "Admin & Finance", "start": "2026-06-01", "end": "2026-06-15", "labels": ["Admin", "Layemi"], "description": "", "duration": "360", "recurring": false, "occurrences": []}, {"title": "Contract for partners", "list": "Admin & Finance", "start": "2026-06-01", "end": "2026-06-19", "labels": ["Admin", "Layemi"], "description": "", "duration": "456", "recurring": false, "occurrences": []}, {"title": "Communication with Partner 3", "list": "Curation", "start": "2026-06-01", "end": "2027-04-30", "labels": ["Khue Ann", "Emails"], "description": "All the communication sections are going to be ongoing for the whole duration of the project.", "duration": "8,016", "recurring": false, "occurrences": []}, {"title": "Ongoing marketing material content", "list": "Curation", "start": "2026-06-05", "end": "2026-06-05", "labels": ["Khue Ann"], "description": "", "duration": "24", "recurring": true, "occurrences": ["2026-06-05", "2026-06-19", "2026-07-03", "2026-07-17", "2026-07-31", "2026-08-14", "2026-08-28", "2026-09-11", "2026-09-25", "2026-10-09", "2026-10-23", "2026-11-05", "2026-11-19", "2026-12-03", "2026-12-17", "2026-12-31", "2027-01-14", "2027-01-28", "2027-02-11", "2027-02-25", "2027-03-11", "2027-03-25", "2027-04-09", "2027-04-23"]}, {"title": "Risk management document", "list": "Production & Logisitcs", "start": "2026-06-06", "end": "2026-07-07", "labels": ["Sofia", "Logistics", "For booth", "For booklet"], "description": "", "duration": "768", "recurring": false, "occurrences": []}, {"title": "Setting up social media platforms", "list": "Marketing & Communications", "start": "2026-06-10", "end": "2026-06-10", "labels": ["Comms", "Maria Julia"], "description": "Will be our first post about on June 10th. We want to have a digital presence from the start to build a young audience. Instagram, Facebook page, Artsy subscription (?). Also making the first post on that date", "duration": "1", "recurring": false, "occurrences": []}, {"title": "Social media posts scheduling", "list": "Marketing & Communications", "start": "2026-06-10", "end": "2026-06-10", "labels": ["Maria Julia", "Comms", "For booth", "For booklet"], "description": "Bi-weekly scheduling and publishing of social media content across Instagram, Facebook and other platforms. Includes content preparation, captions, hashtags and posting.", "duration": "4", "recurring": true, "occurrences": ["2026-06-10", "2026-06-24", "2026-07-08", "2026-07-22", "2026-08-05", "2026-08-19", "2026-09-02", "2026-09-16", "2026-09-30", "2026-10-14", "2026-10-28", "2026-11-11", "2026-11-25", "2026-12-09", "2026-12-23", "2027-01-06", "2027-01-20", "2027-02-03", "2027-02-17", "2027-03-03"]}, {"title": "Company insurance", "list": "Admin & Finance", "start": "2026-06-15", "end": "2026-07-10", "labels": ["Admin", "Layemi"], "description": "", "duration": "624", "recurring": false, "occurrences": []}, {"title": "Final graphics for website", "list": "Marketing & Communications", "start": "2026-06-15", "end": "2026-08-23", "labels": ["Graphic design", "Maria Julia"], "description": "The making of the site that will launch later. Fonts, dimensions, graphics, pages, editing etc\u2026", "duration": "1,680", "recurring": false, "occurrences": []}, {"title": "Monthly invoices", "list": "Admin & Finance", "start": "2026-06-29", "end": "2026-06-29", "labels": ["Emails", "Layemi", "Finance", "Admin"], "description": "", "duration": "1", "recurring": true, "occurrences": ["2026-06-29", "2026-07-27", "2026-08-31", "2026-09-28", "2026-10-25", "2026-11-29", "2026-12-27", "2027-01-24", "2027-02-21", "2027-03-29", "2027-04-26"]}, {"title": "Fundraising set-up/progress", "list": "Admin & Finance", "start": "2026-06-30", "end": "2027-02-01", "labels": ["Finance", "Layemi"], "description": "We will set up a fundraising campaign that will run till the end of January.", "duration": "5,208", "recurring": false, "occurrences": []}, {"title": "Copyright/trademark check for website & company name", "list": "Admin & Finance", "start": "2026-07-01", "end": "2026-07-13", "labels": ["Layemi", "Admin"], "description": "", "duration": "312", "recurring": false, "occurrences": []}, {"title": "Set up email software for website", "list": "Production & Logisitcs", "start": "2026-07-01", "end": "2026-08-31", "labels": ["Production", "Sofia"], "description": "", "duration": "1,488", "recurring": false, "occurrences": []}, {"title": "Communication with 2 writers/researchers", "list": "Curation", "start": "2026-07-01", "end": "2027-02-20", "labels": ["Khue Ann", "Emails", "For booklet"], "description": "All the communication sections are going to be ongoing for the whole duration of the project.", "duration": "5,640", "recurring": false, "occurrences": []}, {"title": "Copywriting for website launch", "list": "Curation", "start": "2026-07-05", "end": "2026-08-23", "labels": ["Khue Ann"], "description": "A week before the launch this information will be sent to the marketing team to upload everything.", "duration": "1,200", "recurring": false, "occurrences": []}, {"title": "Vision board of exhibition design", "list": "Curation", "start": "2026-07-05", "end": "2026-10-15", "labels": ["Khue Ann", "For booth"], "description": "", "duration": "2,472", "recurring": false, "occurrences": []}, {"title": "Vacation dates", "list": "Important dates", "start": "2026-07-13", "end": "2026-08-13", "labels": ["Sofia", "Khue Ann", "Maria Julia", "Layemi", "Unavailability"], "description": "During this time, all members will not be available due to summer school attendance and two-weeks of vacation time", "duration": "768", "recurring": false, "occurrences": []}, {"title": "Final communication strategy", "list": "Marketing & Communications", "start": "2026-08-14", "end": "2026-09-04", "labels": ["Comms", "Maria Julia", "For booth", "For booklet"], "description": "A final report of the usage of media partners, how they would be implemented in the event. Why they are useful, how to be part of the website.", "duration": "528", "recurring": false, "occurrences": []}, {"title": "Registering name & domain", "list": "Production & Logisitcs", "start": "2026-08-16", "end": "2026-08-23", "labels": ["Sofia", "Logistics"], "description": "", "duration": "192", "recurring": false, "occurrences": []}, {"title": "Final event programming", "list": "Curation", "start": "2026-08-16", "end": "2026-10-15", "labels": ["Khue Ann", "Research", "For booth"], "description": "This will be handed to Production to start looking for equipment. We have left 3.5 months for the production to organise the event.", "duration": "1,464", "recurring": false, "occurrences": []}, {"title": "Grant proposal", "list": "Admin & Finance", "start": "2026-08-17", "end": "2026-10-02", "labels": ["Layemi", "Finance", "For booklet", "For booth"], "description": "", "duration": "1,128", "recurring": false, "occurrences": []}, {"title": "Venue hire contract", "list": "Admin & Finance", "start": "2026-08-17", "end": "2026-08-24", "labels": ["For booth", "Admin", "Layemi", "Finance"], "description": "The logic is that TEFAF already handled booth applications in July. So we assume that all legal material will be sent to all booths a month after.", "duration": "192", "recurring": false, "occurrences": []}, {"title": "Website maintenance/IT check", "list": "Production & Logisitcs", "start": "2026-08-24", "end": "2026-08-24", "labels": ["Sofia", "Logistics", "For booklet"], "description": "", "duration": "1", "recurring": false, "occurrences": []}, {"title": "4-month update", "list": "Group meetings", "start": "2026-08-28", "end": "2026-08-28", "labels": ["Sofia", "Emails", "For booklet", "For booth", "Updates"], "description": "This is a formal update of the project that will be sent to our researchers, editors and immediate partners. It will be an email explaining our progress and further steps on our collaboration for each partner.", "duration": "24", "recurring": true, "occurrences": ["2026-08-28", "2026-12-24", "2027-04-23"]}, {"title": "Publishing rights", "list": "Admin & Finance", "start": "2026-08-31", "end": "2026-09-28", "labels": ["For booklet", "Layemi", "Admin"], "description": "", "duration": "696", "recurring": false, "occurrences": []}, {"title": "Final marketing plan", "list": "Marketing & Communications", "start": "2026-09-07", "end": "2026-10-12", "labels": ["Comms", "Maria Julia"], "description": "In October we will have the final event programming ready and we are moving into a phase of more intense production and finalisation. The goal is for most activities to be done in the month of February, 3 weeks to a month before the event.", "duration": "864", "recurring": false, "occurrences": []}, {"title": "SWOT analysis for production", "list": "Production & Logisitcs", "start": "2026-09-07", "end": "2026-09-07", "labels": ["Sofia", "Production"], "description": "", "duration": "1", "recurring": false, "occurrences": []}, {"title": "Website Launch", "list": "Important dates", "start": "2026-09-07", "end": "2026-09-07", "labels": ["Graphic design", "Comms", "Maria Julia"], "description": "Making the domain public", "duration": "1", "recurring": false, "occurrences": []}, {"title": "Marketing material for booth", "list": "Marketing & Communications", "start": "2026-09-08", "end": "2027-01-15", "labels": ["Graphic design", "Comms", "Maria Julia", "For booth"], "description": "All graphics and banners needed for the booth. What it need to say etc, will be reviewed by curation and production.", "duration": "3,120", "recurring": false, "occurrences": []}, {"title": "Liaising with production for costs", "list": "Admin & Finance", "start": "2026-10-12", "end": "2026-10-12", "labels": ["Layemi", "Finance", "Admin", "Emails", "Updates", "Sofia"], "description": "", "duration": "24", "recurring": true, "occurrences": ["2026-10-12", "2026-10-19", "2026-10-25", "2026-11-01", "2026-11-08", "2026-11-15", "2026-11-22", "2026-11-29", "2026-12-06", "2026-12-13", "2026-12-20", "2026-12-27", "2027-01-03", "2027-01-10", "2027-01-17", "2027-01-24", "2027-01-31", "2027-02-07", "2027-02-14", "2027-02-21", "2027-02-28", "2027-03-07", "2027-03-14", "2027-03-21", "2027-03-29", "2027-04-05", "2027-04-12", "2027-04-19", "2027-04-26"]}, {"title": "Equipment list", "list": "Production & Logisitcs", "start": "2026-10-17", "end": "2026-11-06", "labels": ["For booth", "Sofia", "Production"], "description": "", "duration": "504", "recurring": false, "occurrences": []}, {"title": "Going over event plan with curation & marketing", "list": "Production & Logisitcs", "start": "2026-10-25", "end": "2026-11-27", "labels": ["Production", "Sofia", "For booth", "Maria Julia", "Khue Ann"], "description": "After curation has given the event programming and marketing has made a plan, we will all have a week to read the documents and for the next months communicate for potential changes.", "duration": "816", "recurring": false, "occurrences": []}, {"title": "Mediation plan- Focusing on target audience", "list": "Marketing & Communications", "start": "2026-11-02", "end": "2026-11-23", "labels": ["Maria Julia", "Comms", "For booth"], "description": "Related to our position and targeting. Creating a collector\u2019s profile. To whom we are talking and why. Specifically for the presale dates, who to focus.", "duration": "528", "recurring": false, "occurrences": []}, {"title": "Researchers' bio for the booklet", "list": "Curation", "start": "2026-11-02", "end": "2026-11-23", "labels": ["Khue Ann", "For booklet"], "description": "", "duration": "528", "recurring": false, "occurrences": []}, {"title": "SWOT analysis for Marketing", "list": "Marketing & Communications", "start": "2026-11-02", "end": "2026-11-09", "labels": ["Maria Julia", "Comms"], "description": "Part of the marketing plan.", "duration": "192", "recurring": false, "occurrences": []}, {"title": "Price recommendations for equipment list", "list": "Admin & Finance", "start": "2026-11-09", "end": "2026-11-16", "labels": ["Finance", "Layemi", "For booth"], "description": "After production has given the list in December.", "duration": "192", "recurring": false, "occurrences": []}, {"title": "Launch booklet marketing campaign", "list": "Marketing & Communications", "start": "2026-11-18", "end": "2027-02-11", "labels": ["Maria Julia", "Comms", "For booklet"], "description": "Working on everything related to the book launch, including material for TEFAF.", "duration": "2,064", "recurring": false, "occurrences": []}, {"title": "Mediation plan - Educational side", "list": "Curation", "start": "2026-11-23", "end": "2027-02-10", "labels": ["For booth", "Khue Ann"], "description": "What would be shown on the slides, identifying core questions that might be asked from audience. A general outline of how to introduce the booklet.", "duration": "1,920", "recurring": false, "occurrences": []}, {"title": "Partner liaising", "list": "Marketing & Communications", "start": "2026-12-01", "end": "2027-02-28", "labels": ["Maria Julia", "For booth", "For booklet", "Comms", "Updates"], "description": "Liaise with marketing team of sponsors and partners, venue branding, local media, influencers.", "duration": "2,160", "recurring": false, "occurrences": []}, {"title": "Lighting", "list": "Production & Logisitcs", "start": "2026-12-07", "end": "2027-01-08", "labels": ["For booth", "Production", "Sofia"], "description": "Small lamps above or under the interactive screens. These will be bought because they can be used for later presentations.", "duration": "792", "recurring": false, "occurrences": []}, {"title": "Furniture acquisition", "list": "Production & Logisitcs", "start": "2026-12-07", "end": "2027-01-08", "labels": ["Sofia", "Production", "For booth"], "description": "Since we are planning to continue presenting our research in fairs, objects such as chairs, tables, stands etc will be bought not rented.", "duration": "792", "recurring": false, "occurrences": []}, {"title": "Christmas break", "list": "Important dates", "start": "2026-12-21", "end": "2027-01-03", "labels": ["Maria Julia", "Unavailability", "Sofia", "Khue Ann", "Layemi"], "description": "", "duration": "336", "recurring": false, "occurrences": []}, {"title": "Travel & acommondation details for knowledge expert", "list": "Curation", "start": "2027-01-01", "end": "2027-01-22", "labels": ["Khue Ann", "For booth"], "description": "", "duration": "528", "recurring": false, "occurrences": []}, {"title": "Communication with editor", "list": "Curation", "start": "2027-01-01", "end": "2027-02-20", "labels": ["Khue Ann", "Emails", "For booklet"], "description": "", "duration": "1,224", "recurring": false, "occurrences": []}, {"title": "Budget check up mid-production", "list": "Admin & Finance", "start": "2027-01-04", "end": "2027-01-11", "labels": ["Layemi", "Finance", "Emails", "Sofia"], "description": "", "duration": "192", "recurring": false, "occurrences": []}, {"title": "Knowledge expert contract", "list": "Admin & Finance", "start": "2027-01-04", "end": "2027-01-18", "labels": ["Layemi", "Admin", "Emails", "For booth"], "description": "", "duration": "360", "recurring": false, "occurrences": []}, {"title": "Booth insurance", "list": "Admin & Finance", "start": "2027-01-04", "end": "2027-02-01", "labels": ["Layemi", "Admin"], "description": "", "duration": "696", "recurring": false, "occurrences": []}, {"title": "Communication with knowledge expert at the booth", "list": "Curation", "start": "2027-01-04", "end": "2027-03-18", "labels": ["Khue Ann", "For booth", "Emails"], "description": "All the communication sections are going to be ongoing for the whole duration of the project.", "duration": "1,776", "recurring": false, "occurrences": []}, {"title": "Renting audiovisual equipment", "list": "Production & Logisitcs", "start": "2027-01-11", "end": "2027-02-01", "labels": ["For booth", "Production", "Sofia"], "description": "For promotional material, we are renting 1-2 professional cameras and a backdrop.", "duration": "528", "recurring": false, "occurrences": []}, {"title": "Installation plan", "list": "Production & Logisitcs", "start": "2027-01-17", "end": "2027-02-15", "labels": ["Production", "Sofia", "For booth"], "description": "Communicating with TEFAF for the booth and bringing all the elements together in the final 1.5 months before the booth.", "duration": "720", "recurring": false, "occurrences": []}, {"title": "Event timetable for participants", "list": "Production & Logisitcs", "start": "2027-01-18", "end": "2027-02-19", "labels": ["Sofia", "For booth", "Production", "Logistics"], "description": "", "duration": "792", "recurring": false, "occurrences": []}, {"title": "Communication with venue- TEFAF booth", "list": "Production & Logisitcs", "start": "2027-01-18", "end": "2027-03-11", "labels": ["Sofia", "Production", "For booth", "Emails"], "description": "", "duration": "1,272", "recurring": false, "occurrences": []}, {"title": "Confirmation for travel & acommodation for team & expert", "list": "Admin & Finance", "start": "2027-01-22", "end": "2027-02-01", "labels": ["Layemi", "Admin", "For booth", "Finance"], "description": "", "duration": "264", "recurring": false, "occurrences": []}, {"title": "Transport company hire", "list": "Admin & Finance", "start": "2027-02-01", "end": "2027-02-08", "labels": ["Finance", "Layemi", "For booth"], "description": "After having finalised the whole exhibition plan", "duration": "192", "recurring": false, "occurrences": []}, {"title": "Transport plan", "list": "Production & Logisitcs", "start": "2027-02-08", "end": "2027-02-26", "labels": ["Sofia", "For booth", "Production"], "description": "Considered after the contract with the transport company", "duration": "456", "recurring": false, "occurrences": []}, {"title": "Interactive screens", "list": "Production & Logisitcs", "start": "2027-02-08", "end": "2027-02-22", "labels": ["Sofia", "Production", "For booth"], "description": "These will also be rented", "duration": "360", "recurring": false, "occurrences": []}, {"title": "Liaising with knowledge expert", "list": "Production & Logisitcs", "start": "2027-02-08", "end": "2027-03-25", "labels": ["Sofia", "Production", "For booth"], "description": "", "duration": "1,104", "recurring": false, "occurrences": []}, {"title": "Booklet launch", "list": "Important dates", "start": "2027-02-11", "end": "2027-02-12", "labels": ["Maria Julia", "Khue Ann", "Sofia", "Layemi", "For booklet"], "description": "A month before launching at TEFAF we will have finished with writing and editing the booklet and it will be uploaded on our website for collectors to explore. It will be in a pdf form, free for access.", "duration": "1", "recurring": false, "occurrences": []}, {"title": "De-installation plan", "list": "Production & Logisitcs", "start": "2027-02-24", "end": "2027-03-11", "labels": ["Sofia", "Production", "For booth"], "description": "", "duration": "384", "recurring": false, "occurrences": []}, {"title": "Newletter registrations during TEFAF", "list": "Production & Logisitcs", "start": "2027-03-01", "end": "2027-03-22", "labels": ["Sofia", "For booth", "Logistics"], "description": "Have the system ready. Will be a task for during the event.", "duration": "528", "recurring": false, "occurrences": []}, {"title": "Testing interactive screens", "list": "Production & Logisitcs", "start": "2027-03-04", "end": "2027-03-11", "labels": ["Production", "For booth", "Sofia"], "description": "", "duration": "192", "recurring": false, "occurrences": []}, {"title": "Set-up day", "list": "Production & Logisitcs", "start": "2027-03-07", "end": "2027-03-07", "labels": ["Sofia", "For booth", "Production", "Maria Julia", "Khue Ann", "Layemi"], "description": "", "duration": "1", "recurring": false, "occurrences": []}, {"title": "TEFAF week", "list": "Important dates", "start": "2027-03-10", "end": "2027-03-18", "labels": ["Sofia", "Layemi", "Khue Ann", "Maria Julia", "For booth"], "description": "Our booth at TEFAF 2027. Will be present all seven days. At least one of us will be present at the booth alongside a knowledge expert all days.", "duration": "216", "recurring": false, "occurrences": []}, {"title": "Booth launch", "list": "Important dates", "start": "2027-03-11", "end": "2027-03-11", "labels": ["Maria Julia", "Khue Ann", "Sofia", "Layemi", "For booth"], "description": "The main event and the launch of both the booth and our booklet will happen during the preview of TEFAF, when the event is only open to invited collectors.", "duration": "24", "recurring": false, "occurrences": []}, {"title": "Post-event budget evaluation", "list": "Admin & Finance", "start": "2027-03-19", "end": "2027-04-30", "labels": ["Layemi", "Finance"], "description": "", "duration": "1,032", "recurring": false, "occurrences": []}, {"title": "Post- event media tracking", "list": "Marketing & Communications", "start": "2027-03-19", "end": "2027-04-30", "labels": ["Maria Julia", "Comms"], "description": "", "duration": "1,032", "recurring": false, "occurrences": []}, {"title": "Post- event evaluation", "list": "Production & Logisitcs", "start": "2027-03-19", "end": "2027-04-30", "labels": ["Sofia", "Logistics"], "description": "", "duration": "1,032", "recurring": false, "occurrences": []}];
+
+// ── BLACKOUT PERIODS (vacation / Christmas) ──
+const BLACKOUTS = [
+  { title: 'Vacation dates',  start: '2026-07-13', end: '2026-08-13' },
+  { title: 'Christmas break', start: '2026-12-21', end: '2027-01-03' },
+];
+
+// ── CONFIG ──
+const TASK_COL_W = 295;
+const START      = new Date('2026-05-01');
+const END        = new Date('2027-04-30');
+const TOTAL_DAYS = (END - START) / 86400000 + 1;
+
+const LIST_ORDER = ['Important dates','Admin & Finance','Marketing & Communications','Production & Logisitcs','Curation','Group meetings'];
+const LIST_COLORS = {
+  'Admin & Finance':             '#d4a96a',
+  'Marketing & Communications':  '#7fb5a3',
+  'Production & Logisitcs':      '#a8886e',
+  'Curation':                    '#8a8ec4',
+  'Important dates':             '#c07a8a',
+  'Group meetings':              '#b0b8a0',
+};
+const LABEL_COLORS = {
+  'Urgent':'#e05555','Finance':'#d4a96a','Research':'#7fb5a3','Graphic design':'#9b7ec8',
+  'Comms':'#6baed6','Logistics':'#a8886e','Production':'#5a8f6a','Admin':'#b0a070',
+  'Emails':'#aaa','Updates':'#aab8c2','For booth':'#c07a8a','For booklet':'#8a8ec4','Unavailability':'#e0a030',
+};
+const PEOPLE = new Set(['Khue Ann','Sofia','Layemi','Maria Julia']);
+
+function dayOffset(dateStr) { return Math.max(0,(new Date(dateStr)-START)/86400000); }
+function labelColor(l) {
+  if (LABEL_COLORS[l]) return LABEL_COLORS[l];
+  if (PEOPLE.has(l)) return ['#8a8ec4','#7fb5a3','#d4a96a','#c07a8a'][['Khue Ann','Sofia','Layemi','Maria Julia'].indexOf(l)]||'#aaa';
+  return '#999';
+}
+function isMilestone(t) { return t.start === t.end && !t.recurring; }
+
+// Pre-compute blackout ranges as day offsets
+const blackoutRanges = BLACKOUTS.map(b => ({
+  title: b.title,
+  startOff: dayOffset(b.start),
+  endOff:   dayOffset(b.end) + 1,
+}));
+
+function addBlackoutOverlays(cell, bw) {
+  blackoutRanges.forEach(b => {
+    const left  = (b.startOff / TOTAL_DAYS) * bw;
+    const width = ((b.endOff - b.startOff) / TOTAL_DAYS) * bw;
+    const el = document.createElement('div');
+    el.className = 'blackout-overlay';
+    el.style.left  = left + 'px';
+    el.style.width = width + 'px';
+    el.title = b.title + ' (no work)';
+    cell.appendChild(el);
+  });
+}
+
+let activeFilters = {list:'',person:'',tag:''};
+function getFiltered() {
+  return TASKS.filter(t => {
+    if (activeFilters.list   && t.list !== activeFilters.list) return false;
+    if (activeFilters.person && !t.labels.includes(activeFilters.person)) return false;
+    if (activeFilters.tag    && !t.labels.includes(activeFilters.tag)) return false;
+    return true;
+  });
+}
+
+// ── RENDER ──
+function render() {
+  const tasks   = getFiltered();
+  const gantt   = document.getElementById('gantt');
+  gantt.innerHTML = '';
+  const gridTemplate = `${TASK_COL_W}px 1fr`;
+
+  // ── MONTH HEADER ROW ──
+  const mrow = document.createElement('div');
+  mrow.className = 'gantt-header-months';
+  mrow.style.gridTemplateColumns = gridTemplate;
+  mrow.innerHTML = `<div class="hcell-task-months">Task</div><div class="hcell-bar-months" id="hbar-months"></div>`;
+  gantt.appendChild(mrow);
+
+  // ── WEEK HEADER ROW ──
+  const wrow = document.createElement('div');
+  wrow.className = 'gantt-header-weeks';
+  wrow.style.gridTemplateColumns = gridTemplate;
+  wrow.innerHTML = `<div class="hcell-task-weeks">W#</div><div class="hcell-bar-weeks" id="hbar-weeks"></div>`;
+  gantt.appendChild(wrow);
+
+  requestAnimationFrame(() => {
+    const mbар = document.getElementById('hbar-months');
+    const wbar = document.getElementById('hbar-weeks');
+    if (!mbар || !wbar) return;
+    const bw = mbар.offsetWidth;
+
+    // Month ticks + labels
+    let cur = new Date(START);
+    while (cur <= END) {
+      const off = dayOffset(cur.toISOString().slice(0,10));
+      const px  = (off / TOTAL_DAYS) * bw;
+      const tick = document.createElement('div');
+      tick.className = 'month-tick'; tick.style.left = px + 'px';
+      mbар.appendChild(tick);
+      const lbl = document.createElement('div');
+      lbl.className = 'month-label'; lbl.style.left = (px+4)+'px';
+      lbl.textContent = cur.toLocaleString('en-GB',{month:'short',year:'2-digit'}).toUpperCase();
+      mbар.appendChild(lbl);
+      cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+    }
+
+    // Today line on month header
+    const today = new Date();
+    if (today >= START && today <= END) {
+      const tp = ((today-START)/86400000/TOTAL_DAYS)*bw;
+      const tl = document.createElement('div'); tl.className='today-line'; tl.style.left=tp+'px';
+      const tlb= document.createElement('div'); tlb.className='today-label'; tlb.style.left=tp+'px'; tlb.textContent='TODAY';
+      mbар.appendChild(tl); mbар.appendChild(tlb);
+    }
+
+    // Week ticks + labels (W1, W2, W3, W4 per month)
+    // iterate week by week from START
+    let wCur = new Date(START);
+    // align to Monday on or after START
+    while (wCur.getDay() !== 1) wCur = new Date(wCur.getTime() + 86400000);
+    let prevMonth = -1;
+    let weekNumInMonth = 0;
+    while (wCur <= END) {
+      const off = dayOffset(wCur.toISOString().slice(0,10));
+      if (off < 0 || off > TOTAL_DAYS) { wCur = new Date(wCur.getTime() + 7*86400000); continue; }
+      const px = (off / TOTAL_DAYS) * bw;
+
+      const m = wCur.getMonth();
+      if (m !== prevMonth) { weekNumInMonth = 1; prevMonth = m; } else { weekNumInMonth++; }
+
+      const tick = document.createElement('div');
+      tick.className = 'week-tick'; tick.style.left = px + 'px';
+      wbar.appendChild(tick);
+
+      // only label W1–W4 to avoid clutter
+      if (weekNumInMonth <= 4) {
+        const nextPx = ((off+7)/TOTAL_DAYS)*bw;
+        const midPx  = (px + nextPx) / 2;
+        const lbl = document.createElement('div');
+        lbl.className = 'week-label'; lbl.style.left = midPx+'px';
+        lbl.textContent = 'W'+weekNumInMonth;
+        wbar.appendChild(lbl);
+      }
+
+      wCur = new Date(wCur.getTime() + 7*86400000);
+    }
+
+    // Blackout overlays on BOTH header bars
+    addBlackoutOverlays(mbар, bw);
+    addBlackoutOverlays(wbar, bw);
+  });
+
+  // ── GROUP ROWS ──
+  const groups = {};
+  LIST_ORDER.forEach(l => groups[l] = []);
+  tasks.forEach(t => { if (groups[t.list]) groups[t.list].push(t); });
+
+  let rowIdx = 0;
+
+  LIST_ORDER.forEach(listName => {
+    const items = groups[listName];
+    if (!items || items.length === 0) return;
+
+    // group header
+    const grow = document.createElement('div');
+    grow.className = 'gantt-row group-header';
+    grow.style.gridTemplateColumns = gridTemplate;
+    const dot = `<span style="width:8px;height:8px;border-radius:50%;background:${LIST_COLORS[listName]};display:inline-block;flex-shrink:0"></span>`;
+    grow.innerHTML = `<div class="gcell-task">${dot}${listName}</div><div class="gcell-bar"></div>`;
+    gantt.appendChild(grow);
+
+    items.forEach(task => {
+      const row = document.createElement('div');
+      row.className = 'gantt-row';
+      row.style.gridTemplateColumns = gridTemplate;
+
+      const listColor = LIST_COLORS[listName] || '#aaa';
+      const tags = task.labels.filter(l => !PEOPLE.has(l)).slice(0,3);
+      const tagHtml = tags.map(l=>`<span class="tag" style="background:${labelColor(l)}">${l}</span>`).join('');
+      const recurBadge = task.recurring ? `<span class="recur-badge">\xd7${task.occurrences.length}</span>` : '';
+
+      row.innerHTML = `
+        <div class="cell-task">
+          <span class="cell-list-dot" style="background:${listColor}"></span>
+          <span class="task-title">${task.title}</span>
+          <div class="task-labels">${tagHtml}${recurBadge}</div>
+        </div>
+        <div class="cell-bar" id="cb${rowIdx}"></div>
+      `;
+      gantt.appendChild(row);
+
+      const idx = rowIdx++;
+      requestAnimationFrame(() => {
+        const cell = document.getElementById(`cb${idx}`);
+        if (!cell) return;
+        const bw = cell.offsetWidth;
+
+        if (task.recurring) {
+          // thin track
+          const firstOff = dayOffset(task.occurrences[0]);
+          const lastOff  = dayOffset(task.occurrences[task.occurrences.length-1]);
+          const track = document.createElement('div');
+          track.className = 'recur-track';
+          track.style.left       = ((firstOff/TOTAL_DAYS)*bw)+'px';
+          track.style.width      = Math.max(4,((lastOff-firstOff)/TOTAL_DAYS)*bw)+'px';
+          track.style.background = listColor;
+          cell.appendChild(track);
+          // dots
+          task.occurrences.forEach(dateStr => {
+            const px = (dayOffset(dateStr)/TOTAL_DAYS)*bw;
+            const dot = document.createElement('div');
+            dot.className = 'recur-dot';
+            dot.style.left        = px+'px';
+            dot.style.borderColor = listColor;
+            dot.addEventListener('mouseenter', e=>showTooltip(e,task,dateStr));
+            dot.addEventListener('mousemove', moveTooltip);
+            dot.addEventListener('mouseleave', hideTooltip);
+            cell.appendChild(dot);
+          });
+
+        } else if (isMilestone(task)) {
+          const px = (dayOffset(task.start)/TOTAL_DAYS)*bw;
+          const m = document.createElement('div');
+          m.className = 'gantt-milestone';
+          m.style.left      = px+'px';
+          m.style.top       = '50%';
+          m.style.marginTop = '-5px';
+          m.style.background = listColor;
+          m.addEventListener('mouseenter', e=>showTooltip(e,task));
+          m.addEventListener('mousemove', moveTooltip);
+          m.addEventListener('mouseleave', hideTooltip);
+          cell.appendChild(m);
+
+        } else {
+          const startOff = dayOffset(task.start);
+          const endOff   = dayOffset(task.end);
+          const left  = (startOff/TOTAL_DAYS)*bw;
+          const width = Math.max(4,((endOff-startOff+1)/TOTAL_DAYS)*bw);
+          const bar = document.createElement('div');
+          bar.className = 'gantt-bar';
+          bar.style.left       = left+'px';
+          bar.style.width      = width+'px';
+          bar.style.background = listColor;
+          bar.style.opacity    = '0.85';
+          bar.addEventListener('mouseenter', e=>showTooltip(e,task));
+          bar.addEventListener('mousemove', moveTooltip);
+          bar.addEventListener('mouseleave', hideTooltip);
+          cell.appendChild(bar);
+        }
+
+        // ── BLACKOUT OVERLAYS on every data row ──
+        addBlackoutOverlays(cell, bw);
+      });
+    });
+  });
+
+  updateStats(tasks);
+}
+
+function updateStats(tasks) {
+  const byList = {};
+  LIST_ORDER.forEach(l => byList[l] = 0);
+  tasks.forEach(t => { if (byList[t.list]!==undefined) byList[t.list]++; });
+  const total     = tasks.reduce((s,t)=>s+(t.recurring?t.occurrences.length:1),0);
+  const recurring = tasks.filter(t=>t.recurring).length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><span class="stat-val">${tasks.length}</span><span class="stat-key">Unique tasks</span></div>
+    <div class="stat"><span class="stat-val">${total}</span><span class="stat-key">Total occurrences</span></div>
+    <div class="stat"><span class="stat-val">${recurring}</span><span class="stat-key">Recurring</span></div>
+    ${LIST_ORDER.filter(l=>byList[l]>0).map(l=>
+      `<div class="stat"><span class="stat-val" style="color:${LIST_COLORS[l]}">${byList[l]}</span><span class="stat-key">${l.split(' ')[0]}</span></div>`
+    ).join('')}
+  `;
+}
+
+// ── TOOLTIP ──
+const tt = document.getElementById('tooltip');
+function showTooltip(e, task, specificDate) {
+  const allTags = task.labels.map(l=>`<span class="tag" style="background:${labelColor(l)}">${l}</span>`).join('');
+  const dateStr = specificDate
+    ? `<span class="tt-meta">Occurrence: ${specificDate}</span>`
+    : `<span class="tt-meta">${task.start}${task.end!==task.start?' \u2192 '+task.end:''}</span>`;
+  const extra = task.recurring
+    ? `<span class="tt-meta">Recurring \u00b7 ${task.occurrences.length}x</span>`
+    : `<span class="tt-meta">${task.duration}h duration</span>`;
+  tt.innerHTML = `
+    <strong>${task.title}</strong>
+    <span class="tt-meta">${task.list}</span>
+    ${dateStr}${extra}
+    ${task.description?`<div style="margin-top:6px;font-size:10px;color:rgba(255,255,255,0.75);line-height:1.5">${task.description.slice(0,260)}${task.description.length>260?'\u2026':''}</div>`:''}
+    <div class="tt-tags">${allTags}</div>
+  `;
+  tt.classList.add('visible');
+  moveTooltip(e);
+}
+function moveTooltip(e) {
+  let x=e.clientX+16, y=e.clientY+16;
+  if (x+340>window.innerWidth)  x=e.clientX-340;
+  if (y+tt.offsetHeight+20>window.innerHeight) y=e.clientY-tt.offsetHeight-8;
+  tt.style.left=x+'px'; tt.style.top=y+'px';
+}
+function hideTooltip() { tt.classList.remove('visible'); }
+
+// ── FILTERS ──
+document.getElementById('filterList').addEventListener('change', e=>{activeFilters.list=e.target.value;render();});
+document.getElementById('filterPerson').addEventListener('change', e=>{activeFilters.person=e.target.value;render();});
+document.getElementById('filterTag').addEventListener('change', e=>{activeFilters.tag=e.target.value;render();});
+function resetFilters() {
+  activeFilters={list:'',person:'',tag:''};
+  ['filterList','filterPerson','filterTag'].forEach(id=>document.getElementById(id).value='');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
